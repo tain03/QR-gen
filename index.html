@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk QR Code Generator - Tạo Mã QR Hàng Loạt</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Bulk QR Generator</h1>
+            <p>Tạo hàng loạt mã QR từ danh sách của bạn chỉ trong vài giây.</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <label for="qr-input">Nhập danh sách (mỗi dòng một mã):</label>
+                <textarea id="qr-input" placeholder="https://example.com&#10;Mã sản phẩm 001&#10;Văn bản bất kỳ..."></textarea>
+                
+                <div class="controls">
+                    <div class="settings">
+                        <label>
+                            Kích thước:
+                            <select id="qr-size">
+                                <option value="128">128x128</option>
+                                <option value="256" selected>256x256</option>
+                                <option value="512">512x512</option>
+                            </select>
+                        </label>
+                        <label>
+                            Màu sắc:
+                            <input type="color" id="qr-color" value="#000000">
+                        </label>
+                    </div>
+                    <button id="generate-btn" class="primary-btn">
+                        <span class="icon">⚡</span> Tạo QR Code
+                    </button>
+                </div>
+            </div>
+
+            <div id="results-section" class="hidden">
+                <div class="results-header">
+                    <h2>Kết quả (<span id="count">0</span>)</h2>
+                    <button id="download-all-btn" class="secondary-btn">
+                        <span class="icon">📥</span> Tải xuống tất cả (ZIP)
+                    </button>
+                </div>
+                <div id="qr-grid" class="qr-grid">
+                    <!-- QR Codes will be generated here -->
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Designed for speed & beauty.</p>
+        </footer>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
