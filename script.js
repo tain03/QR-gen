@@ -7,8 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultsSection = document.getElementById('results-section');
     const qrGrid = document.getElementById('qr-grid');
     const countSpan = document.getElementById('count');
+    const labelModeCheckbox = document.getElementById('label-mode');
 
-    let generatedQRs = []; // Store generated QR data for download
+    let generatedItems = []; // Store generated items (QR or Label) for download
 
     generateBtn.addEventListener('click', async () => {
         const text = qrInput.value.trim();
@@ -22,86 +23,191 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Reset UI
         qrGrid.innerHTML = '';
-        generatedQRs = [];
+        generatedItems = [];
         resultsSection.classList.remove('hidden');
         countSpan.textContent = lines.length;
-        
+
         const size = parseInt(qrSizeSelect.value);
         const color = qrColorInput.value;
+        const isLabelMode = labelModeCheckbox.checked;
 
-        // Generate QRs
+        // Generate Items
         for (let i = 0; i < lines.length; i++) {
             const content = lines[i].trim();
-            const qrContainer = document.createElement('div');
-            qrContainer.className = 'qr-item';
-            
-            // Container for the QR code library to render into
-            const qrDiv = document.createElement('div');
-            qrContainer.appendChild(qrDiv);
-            
-            const label = document.createElement('div');
-            label.className = 'qr-text';
-            label.textContent = content;
-            qrContainer.appendChild(label);
+            const itemContainer = document.createElement('div');
+            itemContainer.className = 'qr-item';
 
-            qrGrid.appendChild(qrContainer);
+            qrGrid.appendChild(itemContainer);
 
-            // Generate QR
-            // Using a Promise to ensure rendering before moving on (though qrcodejs is sync usually)
-            new QRCode(qrDiv, {
-                text: content,
-                width: size,
-                height: size,
-                colorDark : color,
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
-            });
+            if (isLabelMode) {
+                // Label Mode Generation
+                try {
+                    const dataUrl = await generateLabel(content, size, color);
+                    const img = document.createElement('img');
+                    img.src = dataUrl;
+                    itemContainer.appendChild(img);
 
-            // Wait a bit for the canvas/img to be ready to grab data URL
-            await new Promise(resolve => setTimeout(resolve, 50));
-
-            const img = qrDiv.querySelector('img');
-            if (img) {
-                // Wait for image load if it's an img tag
-                if (!img.complete) {
-                    await new Promise(r => img.onload = r);
-                }
-                generatedQRs.push({
-                    name: `qr_${i + 1}_${sanitizeFilename(content)}.png`,
-                    data: img.src
-                });
-            } else {
-                // Fallback for canvas
-                const canvas = qrDiv.querySelector('canvas');
-                if (canvas) {
-                    generatedQRs.push({
-                        name: `qr_${i + 1}_${sanitizeFilename(content)}.png`,
-                        data: canvas.toDataURL('image/png')
+                    generatedItems.push({
+                        name: `label_${i + 1}_${sanitizeFilename(content)}.png`,
+                        data: dataUrl
                     });
+                } catch (e) {
+                    console.error("Error generating label:", e);
+                }
+            } else {
+                // Standard QR Mode
+                const qrDiv = document.createElement('div');
+                itemContainer.appendChild(qrDiv);
+
+                const label = document.createElement('div');
+                label.className = 'qr-text';
+                label.textContent = content;
+                itemContainer.appendChild(label);
+
+                new QRCode(qrDiv, {
+                    text: content,
+                    width: size,
+                    height: size,
+                    colorDark: color,
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                const img = qrDiv.querySelector('img');
+                if (img) {
+                    if (!img.complete) await new Promise(r => img.onload = r);
+                    generatedItems.push({
+                        name: `qr_${i + 1}_${sanitizeFilename(content)}.png`,
+                        data: img.src
+                    });
+                } else {
+                    const canvas = qrDiv.querySelector('canvas');
+                    if (canvas) {
+                        generatedItems.push({
+                            name: `qr_${i + 1}_${sanitizeFilename(content)}.png`,
+                            data: canvas.toDataURL('image/png')
+                        });
+                    }
                 }
             }
         }
     });
 
     downloadAllBtn.addEventListener('click', () => {
-        if (generatedQRs.length === 0) return;
+        if (generatedItems.length === 0) return;
 
         const zip = new JSZip();
-        const folder = zip.folder("qr_codes");
+        const folderName = labelModeCheckbox.checked ? "labels" : "qr_codes";
+        const folder = zip.folder(folderName);
 
-        generatedQRs.forEach(qr => {
-            // Remove data:image/png;base64, prefix
-            const base64Data = qr.data.split(',')[1];
-            folder.file(qr.name, base64Data, {base64: true});
+        generatedItems.forEach(item => {
+            const base64Data = item.data.split(',')[1];
+            folder.file(item.name, base64Data, { base64: true });
         });
 
-        zip.generateAsync({type:"blob"})
-        .then(function(content) {
-            saveAs(content, "qr_codes.zip");
-        });
+        zip.generateAsync({ type: "blob" })
+            .then(function (content) {
+                saveAs(content, `${folderName}.zip`);
+            });
     });
 
     function sanitizeFilename(text) {
         return text.replace(/[^a-z0-9]/gi, '_').substring(0, 20);
+    }
+
+    async function generateLabel(text, qrSize, color) {
+        return new Promise((resolve) => {
+            // Create a temporary container for QR generation
+            const tempDiv = document.createElement('div');
+
+            // Generate QR first
+            new QRCode(tempDiv, {
+                text: text,
+                width: qrSize,
+                height: qrSize,
+                colorDark: color,
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // Wait for QR to be ready
+            setTimeout(() => {
+                const qrImg = tempDiv.querySelector('img');
+                const qrCanvas = tempDiv.querySelector('canvas');
+
+                let qrSource = qrImg && qrImg.src ? qrImg : qrCanvas;
+
+                if (!qrSource) {
+                    resolve(null);
+                    return;
+                }
+
+                // Canvas setup for the label
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                // Label dimensions (approx 3:1 ratio based on image)
+                // We'll scale based on QR size. 
+                // Let's say QR is 100px, Label height is 120px (padding), Width is 350px.
+                const padding = 20;
+                const labelHeight = qrSize + (padding * 2);
+                const labelWidth = (qrSize * 3.5) + (padding * 2);
+
+                canvas.width = labelWidth;
+                canvas.height = labelHeight;
+
+                // Draw White Background
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, labelWidth, labelHeight);
+
+                // Draw Border
+                ctx.strokeStyle = "#000000";
+                ctx.lineWidth = 4;
+                ctx.strokeRect(2, 2, labelWidth - 4, labelHeight - 4);
+
+                // Draw QR Code
+                // If it's an image, we need to ensure it's loaded, but qrcodejs usually gives datauri immediately
+                if (qrSource instanceof HTMLImageElement && !qrSource.complete) {
+                    qrSource.onload = () => drawContent(ctx, qrSource, text, qrSize, padding, labelWidth, labelHeight, resolve, canvas);
+                } else {
+                    drawContent(ctx, qrSource, text, qrSize, padding, labelWidth, labelHeight, resolve, canvas);
+                }
+            }, 50);
+        });
+    }
+
+    function drawContent(ctx, qrSource, text, qrSize, padding, labelWidth, labelHeight, resolve, canvas) {
+        // Draw QR
+        ctx.drawImage(qrSource, padding + 10, padding, qrSize, qrSize);
+
+        // Draw Text
+        ctx.fillStyle = "#000000";
+        // Font size relative to QR size
+        const fontSize = Math.floor(qrSize / 5.5);
+        ctx.font = `${fontSize}px Arial`;
+        ctx.textBaseline = 'middle';
+
+        const textX = padding + qrSize + 30;
+        const centerY = labelHeight / 2;
+
+        // Split text logic (simple split by length or specific pattern)
+        // User pattern: 293D1752P0024A202512100001W0111 (31 chars)
+        // Split roughly in half or by specific logic. 
+        // Let's split at 18 chars as per plan or just find a good midpoint.
+
+        let line1 = text;
+        let line2 = "";
+
+        if (text.length > 18) {
+            line1 = text.substring(0, 18);
+            line2 = text.substring(18);
+        }
+
+        ctx.fillText(line1, textX, centerY - (fontSize * 0.8));
+        ctx.fillText(line2, textX, centerY + (fontSize * 0.8));
+
+        resolve(canvas.toDataURL('image/png'));
     }
 });

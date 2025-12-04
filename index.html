@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -21,8 +23,9 @@
         <main>
             <div class="input-section">
                 <label for="qr-input">Nhập danh sách (mỗi dòng một mã):</label>
-                <textarea id="qr-input" placeholder="https://example.com&#10;Mã sản phẩm 001&#10;Văn bản bất kỳ..."></textarea>
-                
+                <textarea id="qr-input"
+                    placeholder="https://example.com&#10;Mã sản phẩm 001&#10;Văn bản bất kỳ..."></textarea>
+
                 <div class="controls">
                     <div class="settings">
                         <label>
@@ -36,6 +39,13 @@
                         <label>
                             Màu sắc:
                             <input type="color" id="qr-color" value="#000000">
+                        </label>
+                    </div>
+                    <div class="toggle-container">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="label-mode">
+                            <span class="toggle-custom"></span>
+                            Chế độ in tem (Label Mode)
                         </label>
                     </div>
                     <button id="generate-btn" class="primary-btn">
@@ -63,4 +73,5 @@
     </div>
     <script src="script.js"></script>
 </body>
+
 </html>
