@@ -4,71 +4,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulk QR Code Generator - Tạo Mã QR Hàng Loạt</title>
+    <title>Bulk QR Pro - Tạo Mã QR Hàng Loạt</title>
     <link rel="stylesheet" href="style.css">
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <div class="container">
-        <header>
-            <h1>Bulk QR Generator</h1>
-            <p>Tạo hàng loạt mã QR từ danh sách của bạn chỉ trong vài giây.</p>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="logo-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="logo-icon">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <path d="M3 14h7v7H3z"></path>
+                </svg>
+                <h1>Bulk QR <span class="highlight">Pro</span></h1>
+            </div>
+            <p class="subtitle">Tạo hàng loạt mã QR chuyên nghiệp trong tích tắc.</p>
         </header>
 
-        <main>
-            <div class="input-section">
-                <label for="qr-input">Nhập danh sách (mỗi dòng một mã):</label>
-                <textarea id="qr-input"
-                    placeholder="https://example.com&#10;Mã sản phẩm 001&#10;Văn bản bất kỳ..."></textarea>
-
-                <div class="controls">
-                    <div class="settings">
-                        <label>
-                            Kích thước:
-                            <select id="qr-size">
-                                <option value="128">128x128</option>
-                                <option value="256" selected>256x256</option>
-                                <option value="512">512x512</option>
-                            </select>
-                        </label>
-                        <label>
-                            Màu sắc:
-                            <input type="color" id="qr-color" value="#000000">
-                        </label>
+        <main class="main-content">
+            <section class="input-section glass-card">
+                <div class="form-group">
+                    <label for="qr-input" class="input-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        Danh sách dữ liệu
+                    </label>
+                    <textarea id="qr-input" class="modern-textarea"
+                        placeholder="Nhập dữ liệu của bạn ở đây...&#10;https://example.com&#10;Mã sản phẩm 001&#10;Mỗi dòng một mã"></textarea>
+                    <div class="input-footer">
+                        <span class="hint">Mỗi dòng sẽ tạo ra một mã QR riêng biệt.</span>
                     </div>
-                    <div class="toggle-container">
-                        <label class="toggle-label">
-                            <input type="checkbox" id="label-mode">
-                            <span class="toggle-custom"></span>
-                            Chế độ in tem (Label Mode)
-                        </label>
-                    </div>
-                    <button id="generate-btn" class="primary-btn">
-                        <span class="icon">⚡</span> Tạo QR Code
-                    </button>
                 </div>
-            </div>
 
-            <div id="results-section" class="hidden">
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label class="control-label">Kích thước</label>
+                        <div class="select-wrapper">
+                            <select id="qr-size" class="modern-select">
+                                <option value="128">128x128 (Nhỏ)</option>
+                                <option value="256" selected>256x256 (Chuẩn)</option>
+                                <option value="512">512x512 (Lớn)</option>
+                            </select>
+                            <svg class="chevron-down" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Màu sắc</label>
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="qr-color" value="#000000">
+                            <span class="color-value">#000000</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group toggle-group">
+                        <label class="switch">
+                            <input type="checkbox" id="label-mode">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="toggle-label">Chế độ in tem</span>
+                    </div>
+                </div>
+
+                <button id="generate-btn" class="btn btn-primary btn-lg btn-block">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                    </svg>
+                    Tạo QR Code Ngay
+                </button>
+            </section>
+
+            <section id="results-section" class="results-section hidden">
                 <div class="results-header">
-                    <h2>Kết quả (<span id="count">0</span>)</h2>
-                    <button id="download-all-btn" class="secondary-btn">
-                        <span class="icon">📥</span> Tải xuống tất cả (ZIP)
+                    <div class="results-title">
+                        <h2>Kết quả</h2>
+                        <span class="badge" id="count">0</span>
+                    </div>
+                    <button id="download-all-btn" class="btn btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Tải xuống tất cả (ZIP)
                     </button>
                 </div>
                 <div id="qr-grid" class="qr-grid">
                     <!-- QR Codes will be generated here -->
                 </div>
-            </div>
+            </section>
         </main>
 
-        <footer>
-            <p>Designed for speed & beauty.</p>
+        <footer class="main-footer">
+            <p>&copy; 2025 Bulk QR Pro. Designed for efficiency.</p>
         </footer>
     </div>
     <script src="script.js"></script>
