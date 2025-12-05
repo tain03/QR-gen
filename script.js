@@ -21,11 +21,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const lines = text.split('\n').filter(line => line.trim() !== '');
         if (lines.length === 0) return;
 
+        // Show loading state
+        const btnIcon = generateBtn.querySelector('.btn-icon');
+        const spinner = generateBtn.querySelector('.spinner');
+        const btnText = generateBtn.querySelector('.btn-text');
+
+        generateBtn.classList.add('btn-loading');
+        if (btnIcon) btnIcon.classList.add('hidden');
+        if (spinner) spinner.classList.remove('hidden');
+        if (btnText) btnText.textContent = 'Đang tạo...';
+
         // Reset UI
         qrGrid.innerHTML = '';
         generatedItems = [];
         resultsSection.classList.remove('hidden');
         countSpan.textContent = lines.length;
+
+        // Add pop animation to badge
+        countSpan.classList.remove('pop');
+        void countSpan.offsetWidth; // Trigger reflow
+        countSpan.classList.add('pop');
 
         const size = parseInt(qrSizeSelect.value);
         const color = qrColorInput.value;
@@ -36,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const content = lines[i].trim();
             const itemContainer = document.createElement('div');
             itemContainer.className = 'qr-item';
+            itemContainer.title = 'Click để tải xuống';
 
             qrGrid.appendChild(itemContainer);
 
@@ -47,10 +63,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     img.src = dataUrl;
                     itemContainer.appendChild(img);
 
-                    generatedItems.push({
+                    const item = {
                         name: `label_${i + 1}_${sanitizeFilename(content)}.png`,
                         data: dataUrl
-                    });
+                    };
+                    generatedItems.push(item);
+
+                    // Add click-to-download
+                    itemContainer.addEventListener('click', () => downloadSingleItem(item));
                 } catch (e) {
                     console.error("Error generating label:", e);
                 }
@@ -76,23 +96,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 await new Promise(resolve => setTimeout(resolve, 50));
 
                 const img = qrDiv.querySelector('img');
+                let item;
                 if (img) {
                     if (!img.complete) await new Promise(r => img.onload = r);
-                    generatedItems.push({
+                    item = {
                         name: `qr_${i + 1}_${sanitizeFilename(content)}.png`,
                         data: img.src
-                    });
+                    };
                 } else {
                     const canvas = qrDiv.querySelector('canvas');
                     if (canvas) {
-                        generatedItems.push({
+                        item = {
                             name: `qr_${i + 1}_${sanitizeFilename(content)}.png`,
                             data: canvas.toDataURL('image/png')
-                        });
+                        };
                     }
+                }
+
+                if (item) {
+                    generatedItems.push(item);
+                    // Add click-to-download
+                    itemContainer.addEventListener('click', () => downloadSingleItem(item));
                 }
             }
         }
+
+        // Reset button state
+        generateBtn.classList.remove('btn-loading');
+        if (btnIcon) btnIcon.classList.remove('hidden');
+        if (spinner) spinner.classList.add('hidden');
+        if (btnText) btnText.textContent = 'Tạo QR Code Ngay';
     });
 
     downloadAllBtn.addEventListener('click', () => {
@@ -115,6 +148,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function sanitizeFilename(text) {
         return text.replace(/[^a-z0-9]/gi, '_').substring(0, 20);
+    }
+
+    function downloadSingleItem(item) {
+        const link = document.createElement('a');
+        link.href = item.data;
+        link.download = item.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     async function generateLabel(text, qrSize, color) {
